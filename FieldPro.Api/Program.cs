@@ -20,7 +20,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173", // Vite dev
-                "http://localhost:3000"  // dist servito con npx serve
+                "http://localhost:3000"  // dist servito con npx serve,
+                          "https://fieldpro-demo.netlify.app"  // Netlify production
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
