@@ -2,10 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia tutta la solution
+# Copia tutta la solution dentro l'immagine
 COPY . .
 
-# Restore e publish dell'API, che referenzia gli altri progetti
+# Restore e publish dell'API (che dipende dagli altri progetti)
 RUN dotnet restore "./FieldPro.Api/FieldPro.Api.csproj"
 RUN dotnet publish "./FieldPro.Api/FieldPro.Api.csproj" -c Release -o /app/publish
 
