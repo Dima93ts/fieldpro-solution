@@ -3,15 +3,9 @@ using FieldPro.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
 Console.WriteLine("=== FieldPro API BOOT v3 ===");
 
-// ... definizione di renderConnectionString / localConnectionString ...
-
-builder.Services.AddDbContext<FieldProDbContext>(options =>
-{
-    Console.WriteLine($"[DEBUG] Using connection string: {connectionString}");
-    options.UseNpgsql(connectionString);
-});
 // ===========================
 // Database
 // ===========================
@@ -26,19 +20,22 @@ const string renderConnectionString =
     "SSL Mode=Require;" +
     "Trust Server Certificate=true;";
 
-// Connection string locale di fallback (quando sviluppi sul tuo PC)
+// Connection string locale (sviluppo)
 const string localConnectionString =
     "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!";
 
-// Se vuoi, puoi usare un flag di ambiente per distinguere local/Render.
-// Per ora: se esiste ENV 'ASPNETCORE_ENVIRONMENT' con valore 'Development' usa quella locale.
+// Scegli quale usare: in produzione (Render) useremo quella Render
 var env = builder.Environment.EnvironmentName;
 var connectionString = string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase)
     ? localConnectionString
     : renderConnectionString;
 
+Console.WriteLine($"[DEBUG] Using connection string: {connectionString}");
+
 builder.Services.AddDbContext<FieldProDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    options.UseNpgsql(connectionString);
+});
 
 // ===========================
 // CORS (aperto per ora)
@@ -50,7 +47,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: CorsPolicyName, policy =>
     {
         policy
-            .AllowAnyOrigin()   // per demo: permette chiamate da Netlify, localhost, ecc.
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
