@@ -4,46 +4,71 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string PostgreSQL
+// ===========================
+// Database: PostgreSQL (Render)
+// ===========================
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-// Converti DATABASE_URL da formato postgres:// a standard
-if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgres://"))
-      {
-          var uri = new Uri(databaseUrl);
-          databaseUrl = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true";
-      }
+
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    // Normalizza sia postgres:// che postgresql://
+    if (databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        databaseUrl = "postgres://" + databaseUrl.Substring("postgresql://".Length);
+    }
+
+    if (databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    {
+        var uri = new Uri(databaseUrl);
+
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var user = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : string.Empty;
+        var host = uri.Host;
+        var port = uri.Port;
+        var db = uri.AbsolutePath.TrimStart('/');
+
+        databaseUrl =
+            $"Host={host};Port={port};Database={db};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+    }
+}
+
+// Fallback locale se DATABASE_URL non è impostata
 var connectionString = string.IsNullOrEmpty(databaseUrl)
-      ? builder.Configuration.GetConnectionString("DefaultConnection") ?? "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!"
-      : databaseUrl;
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+      ?? "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!"
+    : databaseUrl;
 
 builder.Services.AddDbContext<FieldProDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// CORS: permetti frontend locali (dev + dist)
+
+// ===========================
+// CORS (aperto per debug)
+// ===========================
 const string CorsPolicyName = "FrontendCors";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: CorsPolicyName, policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:5173", // Vite dev
-                "http://localhost:3000",  // dist servito con npx serve
-                          "https://fieldpro-demo2.netlify.app"  // Netlify production
-            )
+            .AllowAnyOrigin()   // per ora aperto: chiama da Netlify, localhost, ecc.
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
+// ===========================
+// App
+// ===========================
 var app = builder.Build();
 
-// Middleware
 app.UseCors(CorsPolicyName);
 
 app.MapGet("/", () => "FieldPro API");
 
-// GET tecnici
+// GET technicians
 app.MapGet("/technicians", async (FieldProDbContext db) =>
 {
     var technicians = await db.Technicians
@@ -157,7 +182,7 @@ app.MapPut("/jobs/{id:int}", async (FieldProDbContext db, int id, JobUpdateStatu
     return Results.NoContent();
 });
 
-// DELETE job -> soft delete (IsDeleted/DeletedAt)
+// DELETE job -> soft delete
 app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, int id) =>
 {
     var job = await db.Jobs.FindAsync(id);
@@ -176,7 +201,9 @@ app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, int id) =>
 
 app.Run();
 
-// DTO per richieste
+// ===========================
+// DTO
+// ===========================
 public record JobCreateRequest(
     string Code,
     string CustomerName,
