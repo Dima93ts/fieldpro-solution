@@ -5,46 +5,35 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===========================
-// Database: PostgreSQL (Render)
+// Database
 // ===========================
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-if (!string.IsNullOrEmpty(databaseUrl))
-{
-    // Normalizza sia postgres:// che postgresql://
-    if (databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
-    {
-        databaseUrl = "postgres://" + databaseUrl.Substring("postgresql://".Length);
-    }
+// Connection string per Render (produzione)
+const string renderConnectionString =
+    "Host=dpg-d5oauavgi27c73ej0960-a;" +
+    "Port=5432;" +
+    "Database=fieldpro_db;" +
+    "Username=fieldpro_db_user;" +
+    "Password=TW6ambCRfjBcqgj91DqAhrtN6xHZ9nqn;" +
+    "SSL Mode=Require;" +
+    "Trust Server Certificate=true;";
 
-    if (databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
-    {
-        var uri = new Uri(databaseUrl);
+// Connection string locale di fallback (quando sviluppi sul tuo PC)
+const string localConnectionString =
+    "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!";
 
-        var userInfo = uri.UserInfo.Split(':', 2);
-        var user = userInfo[0];
-        var password = userInfo.Length > 1 ? userInfo[1] : string.Empty;
-        var host = uri.Host;
-        var port = uri.Port;
-        var db = uri.AbsolutePath.TrimStart('/');
-
-        databaseUrl =
-            $"Host={host};Port={port};Database={db};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
-    }
-}
-
-// Fallback locale se DATABASE_URL non è impostata
-var connectionString = string.IsNullOrEmpty(databaseUrl)
-    ? builder.Configuration.GetConnectionString("DefaultConnection")
-      ?? "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!"
-    : databaseUrl;
+// Se vuoi, puoi usare un flag di ambiente per distinguere local/Render.
+// Per ora: se esiste ENV 'ASPNETCORE_ENVIRONMENT' con valore 'Development' usa quella locale.
+var env = builder.Environment.EnvironmentName;
+var connectionString = string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase)
+    ? localConnectionString
+    : renderConnectionString;
 
 builder.Services.AddDbContext<FieldProDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-
 // ===========================
-// CORS (aperto per debug)
+// CORS (aperto per ora)
 // ===========================
 const string CorsPolicyName = "FrontendCors";
 
@@ -53,7 +42,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: CorsPolicyName, policy =>
     {
         policy
-            .AllowAnyOrigin()   // per ora aperto: chiama da Netlify, localhost, ecc.
+            .AllowAnyOrigin()   // per demo: permette chiamate da Netlify, localhost, ecc.
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
