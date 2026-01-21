@@ -31,9 +31,8 @@ type JobFormData = {
   technicianId: number | undefined;
 };
 
-// 🔹 Base URL API letto da variabile d'ambiente Vite
-const API_BASE = import.meta.env.VITE_API_BASE;
-"https://fieldpro-solution-1.onrender.com";
+const API_BASE = "https://fieldpro-solution-1.onrender.com";
+console.log("API_BASE =", API_BASE);
 
 const ALLOWED_STATUSES = ["Scheduled", "InProgress", "Completed"] as const;
 
@@ -56,7 +55,6 @@ function App() {
     technicianId: undefined,
   });
 
-  // note temporanee per riga, usate al momento del Complete
   const [rowNotes, setRowNotes] = useState<Record<number, string>>({});
 
   useEffect(() => {
@@ -65,12 +63,18 @@ function App() {
   }, []);
 
   const loadTechnicians = async () => {
-    const mockTechnicians: Technician[] = [
-      { id: 1, name: "Marco Bianchi", email: "marco@example.com" },
-      { id: 2, name: "Luca Neri", email: "luca@example.com" },
-      { id: 3, name: "Sara Rossi", email: "sara@example.com" },
-    ];
-    setTechnicians(mockTechnicians);
+    try {
+      const res = await fetch(`${API_BASE}/technicians`);
+      if (!res.ok) {
+        console.error("Errore caricamento tecnici");
+        return;
+      }
+
+      const data: Technician[] = await res.json();
+      setTechnicians(data);
+    } catch (err) {
+      console.error("Errore rete caricando tecnici", err);
+    }
   };
 
   const loadJobs = async (filters?: {
@@ -400,7 +404,11 @@ function App() {
                     placeholder="Cerca codice/cliente/progetto..."
                     value={search}
                     onChange={(e) =>
-                      handleFiltersChange(statusFilter, e.target.value, includeArchived)
+                      handleFiltersChange(
+                        statusFilter,
+                        e.target.value,
+                        includeArchived
+                      )
                     }
                   />
                   <div className="form-check form-check-sm ms-2">
@@ -464,7 +472,6 @@ function App() {
                               {new Date(j.scheduledAt).toLocaleDateString()}
                             </td>
 
-                            {/* Colonna NOTE */}
                             <td
                               style={{
                                 maxWidth: 240,
@@ -476,7 +483,6 @@ function App() {
                                 : "-"}
                             </td>
 
-                            {/* Colonna AZIONI */}
                             <td>
                               <div className="d-flex flex-column gap-1">
                                 {j.status !== "Completed" && (
