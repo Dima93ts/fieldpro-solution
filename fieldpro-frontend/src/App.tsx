@@ -33,6 +33,7 @@ type JobFormData = {
 
 // 🔹 Base URL API letto da variabile d'ambiente Vite
 const API_BASE = import.meta.env.VITE_API_BASE;
+"https://fieldpro-solution-1.onrender.com";
 
 const ALLOWED_STATUSES = ["Scheduled", "InProgress", "Completed"] as const;
 
