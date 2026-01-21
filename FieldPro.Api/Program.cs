@@ -135,12 +135,14 @@ app.MapGet("/jobs", async (
 // POST job
 app.MapPost("/jobs", async (FieldProDbContext db, JobCreateRequest request) =>
 {
+    var scheduledUtc = DateTime.SpecifyKind(request.ScheduledAt, DateTimeKind.Utc);
+
     var job = new Job
     {
         Code = request.Code,
         CustomerName = request.CustomerName,
         Address = request.Address,
-        ScheduledAt = request.ScheduledAt,
+        ScheduledAt = scheduledUtc,
         Status = request.Status,
         Project = request.Project,
         TechnicianId = request.TechnicianId,
