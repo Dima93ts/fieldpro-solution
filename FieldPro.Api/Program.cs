@@ -3,7 +3,15 @@ using FieldPro.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine("=== FieldPro API BOOT v3 ===");
 
+// ... definizione di renderConnectionString / localConnectionString ...
+
+builder.Services.AddDbContext<FieldProDbContext>(options =>
+{
+    Console.WriteLine($"[DEBUG] Using connection string: {connectionString}");
+    options.UseNpgsql(connectionString);
+});
 // ===========================
 // Database
 // ===========================
