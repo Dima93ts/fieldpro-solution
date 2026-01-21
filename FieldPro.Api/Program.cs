@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Connection string PostgreSQL
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection")
-                     ?? "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!";
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var connectionString = string.IsNullOrEmpty(databaseUrl)
+      ? builder.Configuration.GetConnectionString("DefaultConnection") ?? "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!"
+      : databaseUrl;
 
 builder.Services.AddDbContext<FieldProDbContext>(options =>
     options.UseNpgsql(connectionString));
