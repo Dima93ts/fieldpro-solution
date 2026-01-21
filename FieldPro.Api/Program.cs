@@ -6,6 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Connection string PostgreSQL
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+// Converti DATABASE_URL da formato postgres:// a standard
+if (!string.IsNullOrEmpty(databaseUrl) && databaseUrl.StartsWith("postgres://"))
+      {
+          var uri = new Uri(databaseUrl);
+          databaseUrl = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true";
+      }
 var connectionString = string.IsNullOrEmpty(databaseUrl)
       ? builder.Configuration.GetConnectionString("DefaultConnection") ?? "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!"
       : databaseUrl;
