@@ -20,7 +20,8 @@ public class GetJobsQueryHandler : IRequestHandler<GetJobsQuery, List<JobDto>>
 
     public async Task<List<JobDto>> Handle(GetJobsQuery request, CancellationToken cancellationToken)
     {
-        var tenantId = _tenantProvider.GetCurrentTenantId();
+        var tenantId = _tenantProvider.TenantId;
+
 
         var query = _context.Jobs
             .Include(j => j.Technician)

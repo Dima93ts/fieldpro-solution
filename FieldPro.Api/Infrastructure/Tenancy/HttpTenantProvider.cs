@@ -1,7 +1,7 @@
 using FieldPro.Application.Tenancy;
 using Microsoft.AspNetCore.Http;
 
-namespace FieldPro.Api.Tenancy; // cambia se usi un namespace diverso
+namespace FieldPro.Api.Infrastructure.Tenancy;
 
 public class HttpTenantProvider : ITenantProvider
 {
@@ -12,17 +12,20 @@ public class HttpTenantProvider : ITenantProvider
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public string GetCurrentTenantId()
+    public string TenantId
     {
-        var httpContext = _httpContextAccessor.HttpContext
-            ?? throw new InvalidOperationException("No HttpContext");
-
-        if (!httpContext.Request.Headers.TryGetValue("X-Tenant", out var tenant) ||
-            string.IsNullOrWhiteSpace(tenant))
+        get
         {
-            throw new InvalidOperationException("Tenant non specificato");
-        }
+            var httpContext = _httpContextAccessor.HttpContext
+                ?? throw new InvalidOperationException("No HttpContext");
 
-        return tenant.ToString();
+            if (!httpContext.Request.Headers.TryGetValue("X-Tenant", out var tenant) ||
+                string.IsNullOrWhiteSpace(tenant))
+            {
+                throw new InvalidOperationException("Tenant non specificato");
+            }
+
+            return tenant.ToString();
+        }
     }
 }

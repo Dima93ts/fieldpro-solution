@@ -1,6 +1,8 @@
 using FieldPro.Domain.Entities;
 using FieldPro.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using FieldPro.Application.Tenancy;
+using FieldPro.Api.Infrastructure.Tenancy;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +26,7 @@ const string renderConnectionString =
 const string localConnectionString =
     "Host=localhost;Port=5432;Database=fieldpro;Username=fieldpro;Password=fieldPro2026!";
 
-// Scegli quale usare: in produzione (Render) useremo quella Render
+// Scegli quale usare
 var env = builder.Environment.EnvironmentName;
 var connectionString = string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase)
     ? localConnectionString
@@ -36,6 +38,10 @@ builder.Services.AddDbContext<FieldProDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
 });
+
+// Tenancy / HttpContext
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
 
 // ===========================
 // CORS (aperto per ora)
@@ -62,19 +68,23 @@ app.UseCors(CorsPolicyName);
 
 app.MapGet("/", () => "FieldPro API");
 
-// GET technicians
-app.MapGet("/technicians", async (FieldProDbContext db) =>
+// GET technicians (tenant)
+app.MapGet("/technicians", async (FieldProDbContext db, ITenantProvider tenantProvider) =>
 {
+    var tenantId = tenantProvider.TenantId;
+
     var technicians = await db.Technicians
+        .Where(t => t.TenantId == tenantId)
         .OrderBy(t => t.Name)
         .ToListAsync();
 
     return Results.Ok(technicians);
 });
 
-// GET jobs (paginato + filtri + includeArchived -> IsDeleted)
+// GET jobs (paginato + filtri + includeArchived + tenant)
 app.MapGet("/jobs", async (
     FieldProDbContext db,
+    ITenantProvider tenantProvider,
     int page = 1,
     int pageSize = 20,
     string? status = null,
@@ -82,8 +92,11 @@ app.MapGet("/jobs", async (
     bool includeArchived = false
 ) =>
 {
+    var tenantId = tenantProvider.TenantId;
+
     var query = db.Jobs
         .Include(j => j.Technician)
+        .Where(j => j.TenantId == tenantId)
         .AsQueryable();
 
     if (!includeArchived)
@@ -133,8 +146,10 @@ app.MapGet("/jobs", async (
 });
 
 // POST job
-app.MapPost("/jobs", async (FieldProDbContext db, JobCreateRequest request) =>
+app.MapPost("/jobs", async (FieldProDbContext db, ITenantProvider tenantProvider, JobCreateRequest request) =>
 {
+    var tenantId = tenantProvider.TenantId;
+
     var scheduledUtc = DateTime.SpecifyKind(request.ScheduledAt, DateTimeKind.Utc);
 
     var job = new Job
@@ -147,7 +162,8 @@ app.MapPost("/jobs", async (FieldProDbContext db, JobCreateRequest request) =>
         Project = request.Project,
         TechnicianId = request.TechnicianId,
         IsDeleted = false,
-        DeletedAt = null
+        DeletedAt = null,
+        TenantId = tenantId
     };
 
     db.Jobs.Add(job);
@@ -157,9 +173,11 @@ app.MapPost("/jobs", async (FieldProDbContext db, JobCreateRequest request) =>
 });
 
 // PUT status/notes
-app.MapPut("/jobs/{id:int}", async (FieldProDbContext db, int id, JobUpdateStatusRequest request) =>
+app.MapPut("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider tenantProvider, int id, JobUpdateStatusRequest request) =>
 {
-    var job = await db.Jobs.FindAsync(id);
+    var tenantId = tenantProvider.TenantId;
+
+    var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == id && j.TenantId == tenantId);
     if (job == null)
     {
         return Results.NotFound();
@@ -178,10 +196,12 @@ app.MapPut("/jobs/{id:int}", async (FieldProDbContext db, int id, JobUpdateStatu
     return Results.NoContent();
 });
 
-// DELETE job -> soft delete
-app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, int id) =>
+// DELETE job -> soft delete singolo
+app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider tenantProvider, int id) =>
 {
-    var job = await db.Jobs.FindAsync(id);
+    var tenantId = tenantProvider.TenantId;
+
+    var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == id && j.TenantId == tenantId);
     if (job == null)
     {
         return Results.NotFound();
@@ -193,6 +213,29 @@ app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, int id) =>
     await db.SaveChangesAsync();
 
     return Results.NoContent();
+});
+
+// POST bulk-delete jobs -> soft delete multiplo
+app.MapPost("/jobs/bulk-delete", async (
+    FieldProDbContext db,
+    ITenantProvider tenantProvider,
+    BulkDeleteJobsRequest request
+) =>
+{
+    var tenantId = tenantProvider.TenantId;
+
+    if (request.JobIds == null || request.JobIds.Count == 0)
+    {
+        return Results.BadRequest("Nessun jobId specificato");
+    }
+
+    var updated = await db.Jobs
+        .Where(j => request.JobIds.Contains(j.Id) && j.TenantId == tenantId)
+        .ExecuteUpdateAsync(setters => setters
+            .SetProperty(j => j.IsDeleted, true)
+            .SetProperty(j => j.DeletedAt, DateTime.UtcNow));
+
+    return updated > 0 ? Results.NoContent() : Results.BadRequest("Nessun job trovato");
 });
 
 app.Run();
@@ -214,3 +257,5 @@ public record JobUpdateStatusRequest(
     string Status,
     string? Notes
 );
+
+public record BulkDeleteJobsRequest(List<int> JobIds);

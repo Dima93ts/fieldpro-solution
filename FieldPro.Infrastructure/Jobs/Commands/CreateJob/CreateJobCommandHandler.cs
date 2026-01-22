@@ -28,7 +28,8 @@ public class CreateJobCommandHandler : IRequestHandler<CreateJobCommand, int>
     DateTime? completedUtc = null;
     // per ora resta null, quando userai CompletedAt lo gestirai qui
 
-    var tenantId = _tenantProvider.GetCurrentTenantId();
+    var tenantId = _tenantProvider.TenantId;
+
 
     var job = new Job
     {

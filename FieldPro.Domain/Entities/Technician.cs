@@ -14,4 +14,9 @@ public class Technician
     public string? Email { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Multi-tenant
+    [Required]
+    [StringLength(100)]
+    public string TenantId { get; set; } = string.Empty;
 }
