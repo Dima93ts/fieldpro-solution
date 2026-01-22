@@ -244,7 +244,7 @@ function App() {
         <div className="container d-flex justify-content-between align-items-center">
           <div>
             <h1 className="h3 mb-1">FieldPro – Job Management</h1>
-            <small>Gestione job e cantieri per tecnici sul campo</small>
+            <small>Soluzione demo per la gestione job e cantieri per tecnici sul campo</small>
           </div>
           <span className="badge bg-success">API online</span>
         </div>
@@ -542,6 +542,9 @@ function App() {
           </div>
         </div>
       </div>
+            <footer className="text-center text-muted py-3 mt-4" style={{ borderTop: '1px solid #dee2e6' }}>
+                      <small>Powered by SiteOps Studio</small>
+                    </footer>
     </div>
   );
 }
