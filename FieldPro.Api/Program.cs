@@ -8,6 +8,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 Console.WriteLine("=== FieldPro API BOOT v3 ===");
 
+// CORS
+var corsPolicyName = "AllowFrontend";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(corsPolicyName, policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "https://fieldpro-solution.vercel.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+// ===========================
+// Database
+// ===========================
+
+// qui lasci tutto quello che avevi già
+// (connection string, AddDbContext, ecc.)
+
 // ===========================
 // Database
 // ===========================
@@ -38,6 +61,13 @@ builder.Services.AddDbContext<FieldProDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
 });
+var app = builder.Build();
+
+app.UseCors(corsPolicyName);
+
+// qui restano tutti i tuoi app.MapGet / MapPost / MapDelete ...
+app.Run();
+
 
 // Tenancy / HttpContext
 builder.Services.AddHttpContextAccessor();
