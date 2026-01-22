@@ -8,11 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 Console.WriteLine("=== FieldPro API BOOT v3 ===");
 
-// CORS
-var corsPolicyName = "AllowFrontend";
+// ===========================
+// CORS (frontend ufficiali)
+// ===========================
+const string CorsPolicyName = "AllowFrontend";
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(corsPolicyName, policy =>
+    options.AddPolicy(CorsPolicyName, policy =>
     {
         policy
             .WithOrigins(
@@ -23,13 +26,6 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-
-// ===========================
-// Database
-// ===========================
-
-// qui lasci tutto quello che avevi già
-// (connection string, AddDbContext, ecc.)
 
 // ===========================
 // Database
@@ -61,33 +57,10 @@ builder.Services.AddDbContext<FieldProDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
 });
-var app = builder.Build();
-
-app.UseCors(corsPolicyName);
-
-// qui restano tutti i tuoi app.MapGet / MapPost / MapDelete ...
-app.Run();
-
 
 // Tenancy / HttpContext
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, HttpTenantProvider>();
-
-// ===========================
-// CORS (aperto per ora)
-// ===========================
-const string CorsPolicyName = "FrontendCors";
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: CorsPolicyName, policy =>
-    {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
 
 // ===========================
 // App
@@ -110,6 +83,9 @@ app.MapGet("/technicians", async (FieldProDbContext db, ITenantProvider tenantPr
 
     return Results.Ok(technicians);
 });
+
+app.Run();
+
 
 // GET jobs (paginato + filtri + includeArchived + tenant)
 app.MapGet("/jobs", async (
