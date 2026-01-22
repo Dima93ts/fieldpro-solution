@@ -9,4 +9,7 @@ public class Job
     public DateTime ScheduledAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public string Status { get; set; } = "Scheduled";
+
+    // nuovo campo per multi-tenant
+    public string TenantId { get; set; } = default!;
 }

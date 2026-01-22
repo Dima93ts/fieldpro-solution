@@ -1,5 +1,6 @@
 using FieldPro.Application.Jobs.DTOs;
 using FieldPro.Application.Jobs.Queries.GetJobs;
+using FieldPro.Application.Tenancy;
 using FieldPro.Infrastructure.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,16 +10,21 @@ namespace FieldPro.Infrastructure.Jobs.Queries.GetJobs;
 public class GetJobsQueryHandler : IRequestHandler<GetJobsQuery, List<JobDto>>
 {
     private readonly FieldProDbContext _context;
+    private readonly ITenantProvider _tenantProvider;
 
-    public GetJobsQueryHandler(FieldProDbContext context)
+    public GetJobsQueryHandler(FieldProDbContext context, ITenantProvider tenantProvider)
     {
         _context = context;
+        _tenantProvider = tenantProvider;
     }
 
     public async Task<List<JobDto>> Handle(GetJobsQuery request, CancellationToken cancellationToken)
     {
+        var tenantId = _tenantProvider.GetCurrentTenantId();
+
         var query = _context.Jobs
             .Include(j => j.Technician)
+            .Where(j => j.TenantId == tenantId)   // 🔹 filtro per tenant
             .AsQueryable();
 
         if (!request.IncludeArchived)
@@ -55,7 +61,7 @@ public class GetJobsQueryHandler : IRequestHandler<GetJobsQuery, List<JobDto>>
                 Project = j.Project,
                 TechnicianId = j.TechnicianId,
                 TechnicianName = j.Technician != null ? j.Technician.Name : null,
-                Notes = j.Notes      // ← qui, con la virgola sopra corretta
+                Notes = j.Notes
             })
             .ToListAsync(cancellationToken);
 

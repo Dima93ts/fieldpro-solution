@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+const TENANT = import.meta.env.VITE_TENANT;
+
 type Job = {
   id: number;
   code: string;
@@ -30,9 +33,6 @@ type JobFormData = {
   project: string;
   technicianId: number | undefined;
 };
-
-const API_BASE = "https://fieldpro-solution-1.onrender.com";
-console.log("API_BASE =", API_BASE);
 
 const ALLOWED_STATUSES = ["Scheduled", "InProgress", "Completed"] as const;
 
@@ -64,7 +64,11 @@ function App() {
 
   const loadTechnicians = async () => {
     try {
-      const res = await fetch(`${API_BASE}/technicians`);
+      const res = await fetch(`${API_BASE}/technicians`, {
+        headers: {
+          "X-Tenant": TENANT,
+        },
+      });
       if (!res.ok) {
         console.error("Errore caricamento tecnici");
         return;
@@ -92,7 +96,11 @@ function App() {
       if (filters?.search) params.set("search", filters.search);
       if (filters?.includeArchived) params.set("includeArchived", "true");
 
-      const res = await fetch(`${API_BASE}/jobs?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/jobs?${params.toString()}`, {
+        headers: {
+          "X-Tenant": TENANT,
+        },
+      });
       if (!res.ok) throw new Error("Errore caricamento jobs");
       const data: Job[] = await res.json();
       setJobs(data);
@@ -137,7 +145,10 @@ function App() {
 
       const res = await fetch(`${API_BASE}/jobs`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tenant": TENANT,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -167,7 +178,12 @@ function App() {
     if (!confirm("Confermi archiviazione?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/jobs/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/jobs/${id}`, {
+        method: "DELETE",
+        headers: {
+          "X-Tenant": TENANT,
+        },
+      });
       if (!res.ok) throw new Error("Errore archiviazione");
       await loadJobs({
         status: statusFilter || undefined,
@@ -188,7 +204,10 @@ function App() {
     try {
       const res = await fetch(`${API_BASE}/jobs/${job.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tenant": TENANT,
+        },
         body: JSON.stringify({
           status: newStatus,
           notes: notesToSend,
@@ -389,7 +408,11 @@ function App() {
                     className="form-select form-select-sm"
                     value={statusFilter}
                     onChange={(e) =>
-                      handleFiltersChange(e.target.value, search, includeArchived)
+                      handleFiltersChange(
+                        e.target.value,
+                        search,
+                        includeArchived
+                      )
                     }
                   >
                     <option value="">Tutti status</option>

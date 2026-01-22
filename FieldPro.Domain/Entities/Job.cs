@@ -11,7 +11,6 @@ public class Job
     public string Code { get; set; } = string.Empty;
     public string? Notes { get; set; }
 
-
     [Required]
     [StringLength(200)]
     public string CustomerName { get; set; } = string.Empty;
@@ -35,4 +34,9 @@ public class Job
     // Soft delete / archivio
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
+
+    // 🔹 nuovo campo multi-tenant
+    [Required]
+    [StringLength(100)]
+    public string TenantId { get; set; } = string.Empty;
 }
