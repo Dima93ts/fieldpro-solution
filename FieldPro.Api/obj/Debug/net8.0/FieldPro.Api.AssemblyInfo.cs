@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FieldPro.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+97693c592395acc78cf833308d5625de086018e6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5ee790d22ed1cf02f038ecb635aec16a96f49cbc")]
 [assembly: System.Reflection.AssemblyProductAttribute("FieldPro.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FieldPro.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

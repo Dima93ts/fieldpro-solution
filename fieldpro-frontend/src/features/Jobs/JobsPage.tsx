@@ -275,7 +275,7 @@ function JobsPage() {
     }
   };
 
-  const handleBulkDeleteClick = async () => {
+    const handleBulkDeleteClick = async () => {
     if (selectedJobIds.length === 0) {
       alert("Seleziona almeno un job da eliminare");
       return;
@@ -292,20 +292,20 @@ function JobsPage() {
     console.log("Job da eliminare:", selectedJobIds);
 
     try {
-      const response = await fetch(`${API_BASE}/jobs/bulk-delete`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Tenant": TENANT,
-        },
-        body: JSON.stringify({ jobIds: selectedJobIds }),
-      });
+      for (const id of selectedJobIds) {
+        const res = await fetch(`${API_BASE}/jobs/${id}/hard`, {
+          method: "DELETE",
+          headers: {
+            "X-Tenant": TENANT,
+          },
+        });
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("Errore bulk delete:", response.status, text);
-        alert("Errore delete: " + text);
-        return;
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Errore delete job", id, res.status, text);
+          alert(`Errore delete job ${id}: ${text}`);
+          return;
+        }
       }
 
       setSelectedJobIds([]);
@@ -319,6 +319,7 @@ function JobsPage() {
       alert("Errore di rete durante la cancellazione");
     }
   };
+
 
   return (
     <div className="container-fluid vh-100 p-0 d-flex flex-column">

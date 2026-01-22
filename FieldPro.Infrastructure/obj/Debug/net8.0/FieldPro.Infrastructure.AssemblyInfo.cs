@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FieldPro.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+97693c592395acc78cf833308d5625de086018e6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+708e37f8e7349d80d0f4fab226f15a595f1f6182")]
 [assembly: System.Reflection.AssemblyProductAttribute("FieldPro.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FieldPro.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

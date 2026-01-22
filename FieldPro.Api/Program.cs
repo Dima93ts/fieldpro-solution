@@ -215,6 +215,24 @@ app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider ten
     return Results.NoContent();
 });
 
+// DELETE job -> hard delete definitivo
+app.MapDelete("/jobs/{id:int}/hard", async (FieldProDbContext db, ITenantProvider tenantProvider, int id) =>
+{
+    var tenantId = tenantProvider.TenantId;
+
+    var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == id && j.TenantId == tenantId);
+    if (job == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Jobs.Remove(job);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+});
+
+
 // POST bulk-delete jobs -> soft delete multiplo
 app.MapPost("/jobs/bulk-delete", async (
     FieldProDbContext db,
