@@ -75,6 +75,7 @@ function JobsPage() {
         },
       });
       if (!res.ok) throw new Error("Errore caricamento jobs");
+
       const data: Job[] = await res.json();
       setJobs(data);
       setError("");
@@ -115,7 +116,7 @@ function JobsPage() {
       };
 
       if (formData.technician) {
-        // Adatta questo campo al DTO backend (es. TechnicianName o simile)
+        // adatta al DTO backend (es. TechnicianName o Technician)
         payload.technician = formData.technician;
       }
 
@@ -161,6 +162,7 @@ function JobsPage() {
         },
       });
       if (!res.ok) throw new Error("Errore archiviazione");
+
       await loadJobs({
         status: statusFilter || undefined,
         search: search || undefined,
@@ -322,6 +324,8 @@ function JobsPage() {
                   <div className="mb-3">
                     <label className="form-label">Codice *</label>
                     <input
+                      name="jobCode"
+                      autoComplete="on"
                       className="form-control"
                       value={formData.code}
                       onChange={(e) =>
@@ -335,6 +339,8 @@ function JobsPage() {
                   <div className="mb-3">
                     <label className="form-label">Cliente *</label>
                     <input
+                      name="jobCustomer"
+                      autoComplete="on"
                       className="form-control"
                       value={formData.customerName}
                       onChange={(e) =>
@@ -350,6 +356,8 @@ function JobsPage() {
                   <div className="mb-3">
                     <label className="form-label">Indirizzo *</label>
                     <input
+                      name="jobAddress"
+                      autoComplete="on"
                       className="form-control"
                       value={formData.address}
                       onChange={(e) =>
@@ -399,6 +407,8 @@ function JobsPage() {
                   <div className="mb-3">
                     <label className="form-label">Cantiere / Progetto</label>
                     <input
+                      name="jobProject"
+                      autoComplete="on"
                       className="form-control"
                       value={formData.project}
                       onChange={(e) =>
@@ -410,6 +420,8 @@ function JobsPage() {
                   <div className="mb-3">
                     <label className="form-label">Tecnico</label>
                     <input
+                      name="jobTechnician"
+                      autoComplete="on"
                       className="form-control"
                       type="text"
                       value={formData.technician}
