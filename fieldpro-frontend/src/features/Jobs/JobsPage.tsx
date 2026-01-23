@@ -13,15 +13,8 @@ type Job = {
   completedAt: string | null;
   status: string;
   project?: string;
-  technicianId?: number;
   technicianName?: string | null;
   notes?: string | null;
-};
-
-type Technician = {
-  id: number;
-  name: string;
-  email?: string;
 };
 
 type JobFormData = {
@@ -31,15 +24,13 @@ type JobFormData = {
   scheduledAt: string;
   status: "Scheduled" | "InProgress" | "Completed";
   project: string;
-  technician: string; // <- testo libero
+  technician: string; // testo libero
 };
-
 
 const ALLOWED_STATUSES = ["Scheduled", "InProgress", "Completed"] as const;
 
 function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -54,36 +45,14 @@ function JobsPage() {
     status: "Scheduled",
     project: "",
     technician: "",
-    });
+  });
 
   const [rowNotes, setRowNotes] = useState<Record<number, string>>({});
-
-  // selezione multipla
   const [selectedJobIds, setSelectedJobIds] = useState<number[]>([]);
 
   useEffect(() => {
-    loadTechnicians();
     loadJobs();
   }, []);
-
-  const loadTechnicians = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/technicians`, {
-        headers: {
-          "X-Tenant": TENANT,
-        },
-      });
-      if (!res.ok) {
-        console.error("Errore caricamento tecnici");
-        return;
-      }
-
-      const data: Technician[] = await res.json();
-      setTechnicians(data);
-    } catch (err) {
-      console.error("Errore rete caricando tecnici", err);
-    }
-  };
 
   const loadJobs = async (filters?: {
     status?: string;
@@ -144,8 +113,10 @@ function JobsPage() {
         status: formData.status,
         project: formData.project || undefined,
       };
+
       if (formData.technician) {
-        payload.technicianId = formData.technician;
+        // Adatta questo campo al DTO backend (es. TechnicianName o simile)
+        payload.technician = formData.technician;
       }
 
       const res = await fetch(`${API_BASE}/jobs`, {
@@ -276,7 +247,7 @@ function JobsPage() {
     }
   };
 
-    const handleBulkDeleteClick = async () => {
+  const handleBulkDeleteClick = async () => {
     if (selectedJobIds.length === 0) {
       alert("Seleziona almeno un job da eliminare");
       return;
@@ -320,7 +291,6 @@ function JobsPage() {
       alert("Errore di rete durante la cancellazione");
     }
   };
-
 
   return (
     <div className="container-fluid vh-100 p-0 d-flex flex-column">
@@ -439,25 +409,18 @@ function JobsPage() {
 
                   <div className="mb-3">
                     <label className="form-label">Tecnico</label>
-                    <select
-                      className="form-select"
-                      value={formData.technician ?? ""}
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={formData.technician}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          technician: e.target.value
-                            ? e.target.value
-                            : "",
+                          technician: e.target.value,
                         })
                       }
-                    >
-                      <option value="">Nessuno</option>
-                      {technicians.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Inserisci tecnico"
+                    />
                   </div>
 
                   <button type="submit" className="btn btn-primary w-100">
@@ -661,6 +624,7 @@ function JobsPage() {
           </div>
         </div>
       </div>
+
       <footer
         className="text-center text-muted py-3 mt-4"
         style={{ borderTop: "1px solid #dee2e6" }}
