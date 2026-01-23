@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FieldPro.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08c3ba776224b692cce14d75f829443979d94090")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1f1d881a2186b4a52eac4fef55a1e2ed612d216d")]
 [assembly: System.Reflection.AssemblyProductAttribute("FieldPro.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FieldPro.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

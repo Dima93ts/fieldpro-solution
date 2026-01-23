@@ -29,10 +29,11 @@ type JobFormData = {
   customerName: string;
   address: string;
   scheduledAt: string;
-  status: (typeof ALLOWED_STATUSES)[number];
+  status: "Scheduled" | "InProgress" | "Completed";
   project: string;
-  technicianId: number | undefined;
+  technician: string; // <- testo libero
 };
+
 
 const ALLOWED_STATUSES = ["Scheduled", "InProgress", "Completed"] as const;
 
@@ -52,8 +53,8 @@ function JobsPage() {
     scheduledAt: "",
     status: "Scheduled",
     project: "",
-    technicianId: undefined,
-  });
+    technician: "",
+    });
 
   const [rowNotes, setRowNotes] = useState<Record<number, string>>({});
 
@@ -143,8 +144,8 @@ function JobsPage() {
         status: formData.status,
         project: formData.project || undefined,
       };
-      if (formData.technicianId) {
-        payload.technicianId = formData.technicianId;
+      if (formData.technician) {
+        payload.technicianId = formData.technician;
       }
 
       const res = await fetch(`${API_BASE}/jobs`, {
@@ -165,7 +166,7 @@ function JobsPage() {
         scheduledAt: "",
         status: "Scheduled",
         project: "",
-        technicianId: undefined,
+        technician: "",
       });
 
       await loadJobs({
@@ -440,13 +441,13 @@ function JobsPage() {
                     <label className="form-label">Tecnico</label>
                     <select
                       className="form-select"
-                      value={formData.technicianId ?? ""}
+                      value={formData.technician ?? ""}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          technicianId: e.target.value
-                            ? parseInt(e.target.value, 10)
-                            : undefined,
+                          technician: e.target.value
+                            ? e.target.value
+                            : "",
                         })
                       }
                     >
