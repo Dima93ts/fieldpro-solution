@@ -69,9 +69,12 @@ var app = builder.Build();
 
 app.UseCors(CorsPolicyName);
 
+// Root
 app.MapGet("/", () => "FieldPro API");
 
-// GET technicians (tenant)
+// ===========================
+// Technicians (tenant-based)
+// ===========================
 app.MapGet("/technicians", async (FieldProDbContext db, ITenantProvider tenantProvider) =>
 {
     var tenantId = tenantProvider.TenantId;
@@ -84,8 +87,9 @@ app.MapGet("/technicians", async (FieldProDbContext db, ITenantProvider tenantPr
     return Results.Ok(technicians);
 });
 
-app.Run();
-
+// ===========================
+// Jobs endpoints
+// ===========================
 
 // GET jobs (paginato + filtri + includeArchived + tenant)
 app.MapGet("/jobs", async (
@@ -152,7 +156,11 @@ app.MapGet("/jobs", async (
 });
 
 // POST job
-app.MapPost("/jobs", async (FieldProDbContext db, ITenantProvider tenantProvider, JobCreateRequest request) =>
+app.MapPost("/jobs", async (
+    FieldProDbContext db,
+    ITenantProvider tenantProvider,
+    JobCreateRequest request
+) =>
 {
     var tenantId = tenantProvider.TenantId;
 
@@ -179,7 +187,12 @@ app.MapPost("/jobs", async (FieldProDbContext db, ITenantProvider tenantProvider
 });
 
 // PUT status/notes
-app.MapPut("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider tenantProvider, int id, JobUpdateStatusRequest request) =>
+app.MapPut("/jobs/{id:int}", async (
+    FieldProDbContext db,
+    ITenantProvider tenantProvider,
+    int id,
+    JobUpdateStatusRequest request
+) =>
 {
     var tenantId = tenantProvider.TenantId;
 
@@ -203,7 +216,11 @@ app.MapPut("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider tenant
 });
 
 // DELETE job -> soft delete singolo
-app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider tenantProvider, int id) =>
+app.MapDelete("/jobs/{id:int}", async (
+    FieldProDbContext db,
+    ITenantProvider tenantProvider,
+    int id
+) =>
 {
     var tenantId = tenantProvider.TenantId;
 
@@ -222,7 +239,11 @@ app.MapDelete("/jobs/{id:int}", async (FieldProDbContext db, ITenantProvider ten
 });
 
 // DELETE job -> hard delete definitivo
-app.MapDelete("/jobs/{id:int}/hard", async (FieldProDbContext db, ITenantProvider tenantProvider, int id) =>
+app.MapDelete("/jobs/{id:int}/hard", async (
+    FieldProDbContext db,
+    ITenantProvider tenantProvider,
+    int id
+) =>
 {
     var tenantId = tenantProvider.TenantId;
 
@@ -237,7 +258,6 @@ app.MapDelete("/jobs/{id:int}/hard", async (FieldProDbContext db, ITenantProvide
 
     return Results.NoContent();
 });
-
 
 // POST bulk-delete jobs -> soft delete multiplo
 app.MapPost("/jobs/bulk-delete", async (
