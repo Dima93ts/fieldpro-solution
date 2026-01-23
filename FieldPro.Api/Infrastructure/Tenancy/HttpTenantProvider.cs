@@ -19,13 +19,15 @@ public class HttpTenantProvider : ITenantProvider
             var httpContext = _httpContextAccessor.HttpContext
                 ?? throw new InvalidOperationException("No HttpContext");
 
-            if (!httpContext.Request.Headers.TryGetValue("X-Tenant", out var tenant) ||
-                string.IsNullOrWhiteSpace(tenant))
+            // 1) Header X-Tenant (frontend React)
+            if (httpContext.Request.Headers.TryGetValue("X-Tenant", out var tenant) &&
+                !string.IsNullOrWhiteSpace(tenant))
             {
-                throw new InvalidOperationException("Tenant non specificato");
+                return tenant.ToString();
             }
 
-            return tenant.ToString();
+            // 2) Fallback definitivo: tenant di default
+            return "main";
         }
     }
 }

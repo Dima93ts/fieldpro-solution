@@ -82,6 +82,7 @@ app.MapGet("/technicians", async (FieldProDbContext db, ITenantProvider tenantPr
     var technicians = await db.Technicians
         .Where(t => t.TenantId == tenantId)
         .OrderBy(t => t.Name)
+        .AsNoTracking()
         .ToListAsync();
 
     return Results.Ok(technicians);
@@ -104,9 +105,12 @@ app.MapGet("/jobs", async (
 {
     var tenantId = tenantProvider.TenantId;
 
+    if (page <= 0) page = 1;
+    if (pageSize <= 0 || pageSize > 100) pageSize = 20;
+
     var query = db.Jobs
-        .Include(j => j.Technician)
         .Where(j => j.TenantId == tenantId)
+        .AsNoTracking()
         .AsQueryable();
 
     if (!includeArchived)
@@ -128,12 +132,10 @@ app.MapGet("/jobs", async (
             (j.Project != null && j.Project.ToLower().Contains(s)));
     }
 
-    query = query
+    var items = await query
         .OrderBy(j => j.ScheduledAt)
         .Skip((page - 1) * pageSize)
-        .Take(pageSize);
-
-    var jobs = await query
+        .Take(pageSize)
         .Select(j => new
         {
             j.Id,
@@ -152,7 +154,7 @@ app.MapGet("/jobs", async (
         })
         .ToListAsync();
 
-    return Results.Ok(jobs);
+    return Results.Ok(items);
 });
 
 // POST job
