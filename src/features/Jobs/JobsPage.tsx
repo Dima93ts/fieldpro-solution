@@ -14,6 +14,19 @@ const TENANT =
 
 console.log("[DEBUG] TENANT =", TENANT);
 
+type Job = {
+  id: number;
+  code: string;
+  customerName: string;
+  address: string;
+  scheduledAt: string;
+  completedAt: string | null;
+  status: string;
+  project?: string;
+  technicianName?: string | null;
+  notes?: string | null;
+};
+
 type JobFormData = {
   code: string;
   customerName: string;
