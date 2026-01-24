@@ -2,20 +2,17 @@ import { useEffect, useState, type FormEvent } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
-const TENANT = import.meta.env.VITE_TENANT;
 
-type Job = {
-  id: number;
-  code: string;
-  customerName: string;
-  address: string;
-  scheduledAt: string;
-  completedAt: string | null;
-  status: string;
-  project?: string;
-  technicianName?: string | null;
-  notes?: string | null;
-};
+// Tenant: prova a leggere ?tenant=... dall'URL, altrimenti usa "main" come default
+const urlParams = new URLSearchParams(window.location.search);
+const rawTenant = urlParams.get("tenant");
+
+const TENANT =
+  rawTenant && rawTenant.trim().length > 0
+    ? rawTenant.trim()
+    : "main";
+
+console.log("[DEBUG] TENANT =", TENANT);
 
 type JobFormData = {
   code: string;
